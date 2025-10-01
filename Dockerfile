@@ -19,7 +19,7 @@ RUN apt update && apt install -y \
     fontconfig \
     libxrender1 \
     libxext6 \
-    libjpeg-turbo8 \
+    libjpeg62-turbo \
     libpng16-16 \
     xfonts-base \
     xfonts-75dpi \
@@ -27,7 +27,7 @@ RUN apt update && apt install -y \
     tree \
  && rm -rf /var/lib/apt/lists/*
 
-# تثبيت wkhtmltopdf (باستخدام الحزمة الرسمية أو ملف .deb)
+# تثبيت wkhtmltopdf
 RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.jammy_amd64.deb \
  && apt-get install -y ./wkhtmltox_0.12.6.1-3.jammy_amd64.deb \
  && rm wkhtmltox_0.12.6.1-3.jammy_amd64.deb
