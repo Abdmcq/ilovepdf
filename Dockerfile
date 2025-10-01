@@ -1,44 +1,59 @@
-# استخدم Ubuntu 22.04 بدلاً من Debian
+# نبدأ من صورة أساسية حديثة
 FROM ubuntu:22.04
 
-# منع الـ prompt أثناء التثبيت
+# منع أسئلة apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# تحديث النظام وتثبيت الحزم الأساسية
+# تحديث النظام وتثبيت المتطلبات الأساسية
 RUN apt-get update && apt-get install -y \
-    python3.11 python3.11-venv python3-pip \
-    wget tree git curl \
-    fontconfig libxrender1 libxext6 libjpeg-turbo8 libpng16-16 \
-    xfonts-base xfonts-75dpi ocrmypdf \
+    python3.11 \
+    python3.11-dev \
+    python3-pip \
+    python3-setuptools \
+    python3-wheel \
+    build-essential \
+    wget \
+    curl \
+    git \
+    xz-utils \
+    gnupg \
+    libssl-dev \
+    libffi-dev \
+    libjpeg-turbo8 \
+    libpng-dev \
+    libxrender1 \
+    libx11-dev \
+    libxext6 \
+    libfontconfig1 \
+    libfreetype6 \
+    libxcb1 \
  && rm -rf /var/lib/apt/lists/*
 
-# إعداد alias للبايثون
+# جعل python يشير إلى python3.11
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1
 
-# تثبيت wkhtmltopdf (نسخة 0.12.6.1 متوافقة مع Ubuntu 22.04)
+# تثبيت wkhtmltopdf (نسخة رسمية متوافقة مع Jammy)
 RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.jammy_amd64.deb \
- && apt-get install -y ./wkhtmltox_0.12.6.1-3.jammy_amd64.deb \
+ && apt-get update && apt-get install -y ./wkhtmltox_0.12.6.1-3.jammy_amd64.deb \
  && rm wkhtmltox_0.12.6.1-3.jammy_amd64.deb
 
-# إنشاء مجلد البيانات
-RUN mkdir /pdf && chmod 777 /pdf
-
-# تعيين مسار العمل
+# تحديد مجلد العمل
 WORKDIR /ILovePDF
 
-# تثبيت المتطلبات الأساسية
+# نسخ متطلبات المشروع
 COPY ILovePDF/requirements.txt requirements.txt
-RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# حل مشكلة pdfminer.six المكسورة + تثبيت المتطلبات
+RUN pip uninstall -y pdfminer.six || true \
+ && pip install --upgrade pip \
+ && pip install -r requirements.txt
 
 # تثبيت متطلبات libgenesis
 COPY ILovePDF/libgenesis/requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
-# نسخ الكود
-COPY /ILovePDF .
+# نسخ باقي ملفات المشروع
+COPY . .
 
-# فقط للفحص (ممكن تحذف tree لاحقاً)
-RUN tree
-
-# أمر التشغيل
-CMD bash run.sh
+# أمر التشغيل (غيره حسب مشروعك)
+CMD ["python", "main.py"]
